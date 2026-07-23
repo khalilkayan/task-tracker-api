@@ -1,0 +1,34 @@
+# Verification Log
+
+## Baseline Check
+
+Date: 23 July 2026
+
+### Automated tests
+
+Command: `python3 -m pytest tests -q`
+
+Result: 16 passed, 1 warning in 0.03s.
+
+The warning was a FastAPI deprecation warning involving `HTTP_422_UNPROCESSABLE_ENTITY`. It did not cause a test failure.
+
+### Backend checks
+
+- `GET /health` opened successfully.
+- FastAPI Swagger documentation opened at `/docs`.
+- The existing backend DELETE endpoint returned HTTP 204.
+
+### Frontend checks
+
+- The Kanban board loaded successfully.
+- All three columns were visible: ToDo, InProgress, and Done.
+- A new task could be created.
+- An existing task could be edited.
+- A task could move from ToDo to InProgress.
+- A task could move from InProgress to Done.
+- An invalid Done to ToDo transition was rejected and rolled back.
+- The frontend did not include a delete button before the project began.
+
+### Baseline conclusion
+
+The original Task Tracker was working before the two mid-course features were added.
