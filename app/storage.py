@@ -16,8 +16,19 @@ def add_task(payload: TaskCreate) -> TaskResponse:
 def get_all_tasks(
     status: Optional[TaskStatus] = None,
     priority: Optional[TaskPriority] = None,
+    q: Optional[str] = None,
 ) -> list[TaskResponse]:
     tasks = list(_tasks.values())
+
+    if q is not None:
+        query = q.strip().casefold()
+        if query:
+            tasks = [
+                task
+                for task in tasks
+                if query in task.title.casefold()
+                or query in (task.description or "").casefold()
+            ]
 
     if status is not None:
         tasks = [task for task in tasks if task.status == status]

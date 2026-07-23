@@ -51,3 +51,33 @@ Result:
 `2 failed, 16 passed, 1 warning`
 
 The failures occurred because `GET /tasks` did not yet apply the `q` search parameter and returned both the matching and non-matching tasks. This was the expected result before implementation.
+
+### Backend search implementation — green phase
+
+The existing `GET /tasks` endpoint was extended with an optional `q` parameter.
+
+Search behavior implemented:
+
+- Searches task title and description.
+- Uses case-insensitive partial matching.
+- Treats missing, empty, or whitespace-only search as no filter.
+- Continues to combine with existing status and priority filters.
+- Safely handles tasks whose description is null.
+
+Targeted command:
+
+`python3 -m pytest tests/test_tasks.py -k "search" -q`
+
+Result:
+
+`2 passed, 16 deselected`
+
+Full-suite command:
+
+`python3 -m pytest tests -q`
+
+Result:
+
+`18 passed, 1 warning in 0.04s`
+
+The original 16 tests remained passing after backend search was added.

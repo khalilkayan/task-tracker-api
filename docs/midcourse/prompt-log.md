@@ -106,3 +106,56 @@ Rejected:
 
 Reason:
 The two failures correctly demonstrated that the tests protected behavior that did not yet exist. This created a clear test-first red phase.
+
+### Prompt 3 — Implement the smallest backend search change
+
+#### Prompt summary
+
+Copilot was asked to implement the smallest backend change needed to make the two failing search tests pass.
+
+The requirements were to:
+
+- Add an optional `q` parameter to the existing `GET /tasks` endpoint.
+- Pass `q` into `storage.get_all_tasks`.
+- Search title and description using partial, case-insensitive matching.
+- Treat missing, empty, or whitespace-only `q` as no search filter.
+- Preserve combinations with status and priority.
+- Modify only `app/main.py` and `app/storage.py`.
+- Preserve existing tests, models, frontend code, and dependencies.
+- Show the focused diff before applying it.
+
+#### AI response summary
+
+Copilot added `q` to the existing `list_tasks` route and passed it to `storage.get_all_tasks`. It added text filtering before the existing status and priority filters.
+
+The first generated version normalized values with `.lower()` and directly called `.lower()` on `task.description`. It also applied the change before showing the requested diff.
+
+#### Decision
+
+Accepted:
+- Adding `q` to the existing `GET /tasks` endpoint.
+- Passing `q` into `storage.get_all_tasks`.
+- Keeping search inside the existing storage filtering function.
+- Preserving the existing status and priority filters.
+- Treating blank or whitespace-only search as no filter.
+
+Edited:
+- Replaced `.lower()` with `.casefold()` for case-insensitive matching.
+- Replaced direct use of `task.description.lower()` with `(task.description or "").casefold()` because description is optional and may be null.
+
+Rejected:
+- The unsafe direct call to `.lower()` on an optional description.
+- The AI workflow of applying changes before showing the requested diff.
+
+Reason:
+The implementation was small and correctly structured, but manual review found a possible runtime error. Correcting the optional-description handling made the feature safe for all valid task data.
+
+#### Verification
+
+Targeted search tests passed:
+
+`2 passed, 16 deselected`
+
+The complete test suite passed:
+
+`18 passed, 1 warning in 0.04s`
