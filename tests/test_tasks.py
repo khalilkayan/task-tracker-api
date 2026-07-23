@@ -49,6 +49,35 @@ def test_list_tasks_filter_by_priority_returns_only_matches(client: TestClient, 
     ids = [task["id"] for task in r.json()]
     assert created_task["id"] in ids
 
+def test_list_tasks_search_matches_title_case_insensitively(client: TestClient):
+    matching_task = client.post("/tasks", json={"title": "Quantum project"})
+    non_matching_task = client.post("/tasks", json={"title": "Routine cleanup"})
+    assert matching_task.status_code == 201
+    assert non_matching_task.status_code == 201
+
+    r = client.get("/tasks?q=qUa")
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert r.json()[0]["id"] == matching_task.json()["id"]
+
+
+def test_list_tasks_search_matches_description_case_insensitively(client: TestClient):
+    matching_task = client.post(
+        "/tasks",
+        json={"title": "Task with details", "description": "A quick quiz note"},
+    )
+    non_matching_task = client.post(
+        "/tasks",
+        json={"title": "Other task", "description": "No match here"},
+    )
+    assert matching_task.status_code == 201
+    assert non_matching_task.status_code == 201
+
+    r = client.get("/tasks?q=qUi")
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert r.json()[0]["id"] == matching_task.json()["id"]
+
 def test_get_task_by_id_returns_task(client: TestClient, created_task):
     r = client.get(f"/tasks/{created_task['id']}")
     assert r.status_code == 200

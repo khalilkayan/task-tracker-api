@@ -66,3 +66,43 @@ Rejected:
 
 Reason:
 The response was grounded in the existing files, preserved the current architecture, and did not propose unnecessary dependencies or rewrites.
+
+### Prompt 2 — Rewrite a weak prompt and add two search tests
+
+#### Weak prompt
+
+Add search tests to my task app.
+
+#### Stronger prompt
+
+Add exactly two focused pytest tests to `tests/test_tasks.py`:
+
+1. `test_list_tasks_search_matches_title_case_insensitively`
+2. `test_list_tasks_search_matches_description_case_insensitively`
+
+Each test must create a matching and non-matching task using the existing synchronous TestClient. The tests must prove partial, case-insensitive matching, assert HTTP 200, and verify that only the intended task is returned.
+
+The AI was constrained to modify only `tests/test_tasks.py`, preserve existing tests and fixtures, and avoid implementing the search feature itself.
+
+#### AI response summary
+
+Copilot added two focused endpoint tests. The first searches a partial mixed-case value against a task title. The second searches a partial mixed-case value against a task description. Each test creates one matching task and one non-matching task and verifies that only the matching task is returned.
+
+Copilot then ran the existing test file. The result was 2 failed and 16 passed because the API did not yet implement the `q` search parameter.
+
+#### Decision
+
+Accepted:
+- Both generated tests.
+- The existing TestClient style.
+- Creating matching and non-matching tasks inside each test.
+- Assertions for HTTP 200, one result, and the matching task ID.
+
+Edited:
+- No manual edits were required after inspection.
+
+Rejected:
+- No application fix was accepted at this stage because the purpose was to capture the expected failing tests before implementation.
+
+Reason:
+The two failures correctly demonstrated that the tests protected behavior that did not yet exist. This created a clear test-first red phase.

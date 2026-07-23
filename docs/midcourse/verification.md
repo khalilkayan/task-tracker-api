@@ -32,3 +32,22 @@ The warning was a FastAPI deprecation warning involving `HTTP_422_UNPROCESSABLE_
 ### Baseline conclusion
 
 The original Task Tracker was working before the two mid-course features were added.
+
+## Feature 1 — Search and Combined Filters
+
+### Test-first red phase
+
+Two search tests were added before implementing backend search:
+
+- `test_list_tasks_search_matches_title_case_insensitively`
+- `test_list_tasks_search_matches_description_case_insensitively`
+
+Command:
+
+`python3 -m pytest tests/test_tasks.py -q`
+
+Result:
+
+`2 failed, 16 passed, 1 warning`
+
+The failures occurred because `GET /tasks` did not yet apply the `q` search parameter and returned both the matching and non-matching tasks. This was the expected result before implementation.
