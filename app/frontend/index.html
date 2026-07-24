@@ -107,6 +107,63 @@
             transform: translateY(-1px);
         }
 
+        .filter-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 0.8rem;
+            margin: 0 0 1rem;
+            padding: 0.95rem 1rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(191, 209, 226, 0.8);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+        }
+
+        .filter-form-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            flex: 1;
+        }
+
+        .filter-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-width: 10rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .filter-toolbar input,
+        .filter-toolbar select {
+            border: 1px solid var(--border);
+            border-radius: 0.9rem;
+            padding: 0.7rem 0.85rem;
+            font: inherit;
+            color: var(--text);
+            background: #fff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .filter-toolbar input:focus,
+        .filter-toolbar select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+        }
+
+        .filter-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
         main {
             padding: 1rem 1.5rem 2rem;
         }
@@ -480,6 +537,28 @@
     </header>
 
     <main>
+        <form id="task-filters-form" class="filter-toolbar" role="search">
+            <div class="filter-form-fields">
+                <label class="filter-field" for="task-search">
+                    <span>Search</span>
+                    <input id="task-search" name="q" type="search" placeholder="Search tasks">
+                </label>
+                <label class="filter-field" for="priority-filter">
+                    <span>Priority</span>
+                    <select id="priority-filter" name="priority">
+                        <option value="">All priorities</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </label>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="button primary">Search</button>
+                <button type="button" id="clear-filters-button" class="button secondary">Clear Filters</button>
+            </div>
+        </form>
+
         <section
             id="board"
             class="board"
@@ -575,6 +654,25 @@
 
         function getTaskById(taskId) {
             return tasks.find((task) => String(task.id) === String(taskId));
+        }
+
+        function buildTasksUrl() {
+            const searchInput = document.getElementById("task-search");
+            const prioritySelect = document.getElementById("priority-filter");
+            const params = new URLSearchParams();
+
+            const searchValue = searchInput?.value?.trim() ?? "";
+            if (searchValue) {
+                params.set("q", searchValue);
+            }
+
+            const priorityValue = prioritySelect?.value?.trim() ?? "";
+            if (priorityValue) {
+                params.set("priority", priorityValue);
+            }
+
+            const queryString = params.toString();
+            return queryString ? `${API_BASE}/tasks?${queryString}` : `${API_BASE}/tasks`;
         }
 
         function populateTaskModalOptions() {
@@ -851,7 +949,7 @@
                     renderBoard();
 
                     try {
-                        const syncResponse = await fetch(`${API_BASE}/tasks`);
+                        const syncResponse = await fetch(buildTasksUrl());
                         if (syncResponse.ok) {
                             const refreshedTasks = await syncResponse.json();
                             if (Array.isArray(refreshedTasks)) {
@@ -988,7 +1086,7 @@
             render();
 
             try {
-                const response = await fetch(`${API_BASE}/tasks`);
+                const response = await fetch(buildTasksUrl());
                 if (!response.ok) {
                     throw new Error(`Request failed with status ${response.status}`);
                 }
@@ -1002,6 +1100,42 @@
             }
 
             render();
+        }
+
+        function registerFilterHandlers() {
+            const form = document.getElementById("task-filters-form");
+            const prioritySelect = document.getElementById("priority-filter");
+            const clearButton = document.getElementById("clear-filters-button");
+
+            if (!form || form.dataset.handlersRegistered === "true") {
+                return;
+            }
+
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+                void fetchTasks();
+            });
+
+            if (prioritySelect) {
+                prioritySelect.addEventListener("change", () => {
+                    void fetchTasks();
+                });
+            }
+
+            if (clearButton) {
+                clearButton.addEventListener("click", () => {
+                    const searchInput = document.getElementById("task-search");
+                    if (searchInput) {
+                        searchInput.value = "";
+                    }
+                    if (prioritySelect) {
+                        prioritySelect.value = "";
+                    }
+                    void fetchTasks();
+                });
+            }
+
+            form.dataset.handlersRegistered = "true";
         }
 
         function registerModalHandlers() {
@@ -1173,6 +1307,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             populateTaskModalOptions();
             registerBoardHandlers();
+            registerFilterHandlers();
             registerModalHandlers();
             fetchTasks();
         });

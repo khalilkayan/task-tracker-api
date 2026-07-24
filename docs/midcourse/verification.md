@@ -101,3 +101,26 @@ Full-suite result:
 `21 passed, 1 warning`
 
 All original tests and all new search tests passed.
+
+### Feature 1 frontend manual verification
+
+The frontend filter toolbar was tested manually with four controlled tasks:
+
+- Alpha Report — High, ToDo
+- Alpha Cleanup — Low, ToDo
+- Beta Report — High, ToDo
+- Alpha Done — High, Done
+
+The following checks passed:
+
+1. Searching `alpha` displayed Alpha Report, Alpha Cleanup, and Alpha Done while excluding Beta Report.
+2. Selecting High priority displayed Alpha Report, Beta Report, and Alpha Done while excluding Alpha Cleanup.
+3. Combining search `alpha` with High priority displayed only Alpha Report and Alpha Done.
+4. Searching `quarterly` matched Alpha Report and Beta Report through their descriptions.
+5. A no-match search displayed no task cards, returned no application error, and preserved all three empty Kanban columns.
+6. Clear Filters reset both controls and restored all four tasks.
+7. Active filters remained applied after editing Alpha Report.
+8. Active filters remained applied after an invalid Done to ToDo drag.
+9. The invalid drag was rejected, the card returned to Done, and unrelated filtered-out tasks did not reappear.
+
+The existing task modal, priority ordering, valid status transitions, invalid transition rollback, and three-column board layout continued to work.

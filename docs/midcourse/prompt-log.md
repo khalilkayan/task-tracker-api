@@ -195,3 +195,50 @@ Rejected:
 
 Reason:
 The revised test independently proves that search, status, and priority all participate in the combined result.
+
+### Prompt 5 — Implement the Feature 1 frontend toolbar
+
+#### Prompt summary
+
+Copilot was asked to modify only `app/frontend/index.html` and add:
+
+- A search input
+- A priority filter
+- A Search button
+- A Clear Filters button
+- A shared `buildTasksUrl()` helper using `URLSearchParams`
+- Filter handlers that call the backend
+- Filter preservation after task refreshes and failed drag-and-drop synchronization
+
+The prompt explicitly prohibited frontend-only filtering, board rewrites, modal changes, drag-transition changes, new dependencies, and due-date functionality.
+
+#### AI response summary
+
+Copilot added a compact filter toolbar above the Kanban board, styled it consistently with the existing interface, and created `buildTasksUrl()` to construct backend query URLs.
+
+It updated both task-list requests:
+
+- The normal request in `fetchTasks()`
+- The synchronization request after an invalid drag-and-drop attempt
+
+It also added form submission, priority-change, and Clear Filters handlers.
+
+#### Decision
+
+Accepted:
+- The toolbar HTML and focused CSS
+- Backend-driven filtering
+- URL construction with `URLSearchParams`
+- Automatic refresh when priority changes
+- Search form submission
+- Clear Filters behavior
+- Reusing the same filtered URL during failed drag synchronization
+
+Edited:
+- No manual code edits were required after reviewing the proposed frontend diff.
+
+Rejected:
+- No major suggestion was rejected because the implementation remained within the planned scope.
+
+Reason:
+The implementation preserved the existing Kanban rendering, modal behavior, drag-and-drop rules, and empty-column states while making the new backend search feature usable from the frontend.
