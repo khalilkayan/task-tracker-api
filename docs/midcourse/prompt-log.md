@@ -330,3 +330,41 @@ Process note:
 
 Reason:
 The tests are focused, stable, and clearly demonstrate the missing create, response, and partial-update behavior.
+
+### Prompt 3 — Implement optional due-date model support
+
+#### Prompt summary
+
+Copilot was asked to make the smallest application change required to pass the three initial due-date tests.
+
+The requested change was limited to:
+
+- Importing Python's `date` type
+- Adding `due_date: Optional[date] = None` to `TaskCreate`
+- Adding `due_date: Optional[date] = None` to `TaskUpdate`
+- Adding `due_date: Optional[date] = None` to `TaskResponse`
+- Relying on Pydantic's built-in parsing and serialization
+
+#### AI response summary
+
+Copilot added the optional date field to all three task models without adding custom validators or modifying the API routes, storage functions, tests, or frontend.
+
+#### Decision
+
+Accepted:
+- Python's built-in `date` type
+- The optional field in all three task models
+- Pydantic's built-in YYYY-MM-DD parsing
+- Keeping the existing generic storage creation and update behavior
+
+Edited:
+- No code edits were required after reviewing the focused model change
+
+Rejected:
+- No custom validator or extra storage logic was added because the existing behavior already supported the field
+
+Process note:
+- Copilot again applied the change before waiting for approval, despite the instruction to show the diff first
+
+Reason:
+The minimal model-only change made all create, response, update, and removal tests pass while preserving the existing architecture.

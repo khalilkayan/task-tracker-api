@@ -190,3 +190,31 @@ Observed failures:
 - PATCH with a due date returned HTTP 422 instead of 200
 
 These were the expected failures because the task models did not yet define the optional due-date field.
+
+### Initial due-date implementation — green phase
+
+The optional `due_date` field was added to:
+
+- `TaskCreate`
+- `TaskUpdate`
+- `TaskResponse`
+
+Python's `date` type and Pydantic's built-in date parsing were used. No custom validator or special storage code was required.
+
+Targeted command:
+
+`python3 -m pytest tests/test_tasks.py -k "due_date" -q`
+
+Result:
+
+`3 passed, 21 deselected`
+
+Full-suite command:
+
+`python3 -m pytest tests -q`
+
+Result:
+
+`24 passed, 1 warning`
+
+The existing generic creation and partial-update logic successfully supported adding, changing, and removing due dates.
