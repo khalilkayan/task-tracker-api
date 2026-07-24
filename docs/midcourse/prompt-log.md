@@ -242,3 +242,91 @@ Rejected:
 
 Reason:
 The implementation preserved the existing Kanban rendering, modal behavior, drag-and-drop rules, and empty-column states while making the new backend search feature usable from the frontend.
+
+## Feature 2: Due Dates and Overdue Filtering
+
+### Prompt 1 — Inspect and plan the due-date feature
+
+#### Prompt summary
+
+Copilot was asked to inspect the existing backend, tests, and frontend before proposing any edits.
+
+The required feature included:
+
+- An optional date-only `due_date`
+- Create, update, removal, and response support
+- Invalid dates returning HTTP 422
+- An `overdue=true` filter on the existing `GET /tasks` endpoint
+- Overdue defined as due date before today and status not Done
+- Due-date input, card display, overdue indicator, and overdue-only frontend control
+- Preservation of all existing behavior and architecture
+
+#### AI response summary
+
+Copilot identified `app/models.py`, `app/storage.py`, `app/main.py`, `tests/test_tasks.py`, and `app/frontend/index.html` as the relevant files.
+
+It proposed adding the field to all task models, calculating overdue status in the backend, extending the existing list route, adding backend tests, and integrating the feature into the existing modal, cards, and filter toolbar.
+
+#### Decision
+
+Accepted:
+- Use an optional date-only due date.
+- Add the field to create, update, and response models.
+- Extend the existing `GET /tasks` route with an overdue parameter.
+- Calculate overdue at request time.
+- Keep the current FastAPI, Pydantic, in-memory storage, pytest, and vanilla frontend architecture.
+- Add the date input, card display, overdue indicator, and overdue-only filter.
+
+Edited:
+- Use Pydantic's built-in Python `date` parsing before considering custom validation.
+- Treat `overdue=true` as the only value that enables overdue-only filtering; false or omitted means no overdue filter.
+- Split the proposed broad overdue test into smaller focused tests.
+- Use dates relative to `date.today()` in tests instead of fixed calendar dates.
+- Avoid changing storage creation and update functions unless tests prove that their existing generic behavior is insufficient.
+- Avoid modifying frontend functions that do not actually require changes.
+
+Rejected:
+- Adding unnecessary custom date validation before testing Pydantic's built-in behavior.
+- One large test covering every overdue scenario.
+- Unnecessary changes to functions already capable of carrying new model fields generically.
+
+Reason:
+The AI plan identified the correct architecture, but review reduced unnecessary code and produced more focused, stable tests.
+
+### Prompt 2 — Add initial due-date regression tests
+
+#### Prompt summary
+
+Copilot was asked to add exactly three tests before implementing due-date support:
+
+- Creating a task with a valid future due date
+- Creating a task without a due date and receiving `due_date: null`
+- Adding, changing, and removing a due date through PATCH
+
+Dates were calculated relative to `date.today()` so the tests would remain valid over time.
+
+#### AI response summary
+
+Copilot added the requested datetime imports and three focused tests to `tests/test_tasks.py`.
+
+The tests used the existing synchronous TestClient pattern and verified that unrelated task fields remained unchanged during due-date updates.
+
+#### Decision
+
+Accepted:
+- All three generated tests
+- Relative future dates using `date.today()` and `timedelta`
+- Explicit PATCH removal using `{"due_date": None}`
+- Assertions that the title remains unchanged
+
+Edited:
+- No manual edits were required after reviewing the test logic
+
+Rejected:
+- No application implementation was accepted at this stage because the tests were intentionally added before the feature
+
+Process note:
+- Copilot applied the changes before waiting for approval, despite being asked to show the diff first
+
+Reason:
+The tests are focused, stable, and clearly demonstrate the missing create, response, and partial-update behavior.

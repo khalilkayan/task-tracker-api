@@ -1,4 +1,7 @@
+from datetime import date, timedelta
+
 from fastapi.testclient import TestClient
+
 
 def test_create_task_valid_returns_201_with_full_body(client: TestClient):
     r = client.post("/tasks", json={"title": "Buy milk"})
@@ -12,6 +15,61 @@ def test_create_task_valid_returns_201_with_full_body(client: TestClient):
     assert "id" in body and len(body["id"]) > 0
     assert "created_at" in body
     assert "updated_at" in body
+
+
+def test_create_task_with_valid_due_date_returns_201_and_exposes_due_date(client: TestClient):
+    future_date = date.today() + timedelta(days=7)
+
+    r = client.post(
+        "/tasks",
+        json={"title": "Due soon", "due_date": future_date.isoformat()},
+    )
+
+    assert r.status_code == 201
+    assert r.json()["due_date"] == future_date.isoformat()
+
+
+def test_create_task_without_due_date_returns_none(client: TestClient):
+    r = client.post("/tasks", json={"title": "No due date"})
+
+    assert r.status_code == 201
+    body = r.json()
+    assert "due_date" in body
+    assert body["due_date"] is None
+
+
+def test_patch_task_due_date_can_add_change_and_remove(client: TestClient):
+    created_task = client.post("/tasks", json={"title": "Due date task"})
+    assert created_task.status_code == 201
+
+    task_id = created_task.json()["id"]
+    first_due_date = date.today() + timedelta(days=7)
+    second_due_date = date.today() + timedelta(days=14)
+
+    first_patch = client.patch(
+        f"/tasks/{task_id}",
+        json={"due_date": first_due_date.isoformat()},
+    )
+    assert first_patch.status_code == 200
+    first_body = first_patch.json()
+    assert first_body["due_date"] == first_due_date.isoformat()
+    assert first_body["title"] == "Due date task"
+
+    second_patch = client.patch(
+        f"/tasks/{task_id}",
+        json={"due_date": second_due_date.isoformat()},
+    )
+    assert second_patch.status_code == 200
+    second_body = second_patch.json()
+    assert second_body["due_date"] == second_due_date.isoformat()
+    assert second_body["title"] == "Due date task"
+
+    remove_patch = client.patch(f"/tasks/{task_id}", json={"due_date": None})
+    assert remove_patch.status_code == 200
+    removed_body = remove_patch.json()
+    assert removed_body["due_date"] is None
+    assert removed_body["title"] == "Due date task"
+
 
 def test_create_task_missing_title_returns_422(client: TestClient):
     r = client.post("/tasks", json={})

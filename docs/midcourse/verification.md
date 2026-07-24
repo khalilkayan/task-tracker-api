@@ -164,3 +164,29 @@ Full-suite result after restoration:
 Conclusion:
 
 The search regression test successfully failed when the protected behavior was broken and passed again after the implementation was restored.
+
+## Feature 2 — Due Dates and Overdue Filtering
+
+### Initial due-date test-first red phase
+
+Three due-date tests were added before implementation:
+
+- `test_create_task_with_valid_due_date_returns_201_and_exposes_due_date`
+- `test_create_task_without_due_date_returns_none`
+- `test_patch_task_due_date_can_add_change_and_remove`
+
+Command:
+
+`python3 -m pytest tests/test_tasks.py -k "due_date" -q`
+
+Result:
+
+`3 failed, 21 deselected`
+
+Observed failures:
+
+- Valid due-date creation returned HTTP 422 instead of 201
+- A normal task response did not contain the `due_date` key
+- PATCH with a due date returned HTTP 422 instead of 200
+
+These were the expected failures because the task models did not yet define the optional due-date field.
