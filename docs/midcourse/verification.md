@@ -124,3 +124,43 @@ The following checks passed:
 9. The invalid drag was rejected, the card returned to Done, and unrelated filtered-out tasks did not reappear.
 
 The existing task modal, priority ordering, valid status transitions, invalid transition rollback, and three-column board layout continued to work.
+
+### Break Test 1 — Backend search filtering
+
+Protected test:
+
+`test_list_tasks_search_matches_title_case_insensitively`
+
+Deliberate break:
+
+The search condition in `storage.get_all_tasks` was temporarily disabled by changing it so the search block could not execute.
+
+Command:
+
+`python3 -m pytest tests/test_tasks.py -k "test_list_tasks_search_matches_title_case_insensitively" -q`
+
+Failure result:
+
+`1 failed, 20 deselected`
+
+Important failure evidence:
+
+`AssertionError: assert 2 == 1`
+
+The API returned both the matching and non-matching tasks because search filtering was disabled. This proved that the test detects broken search behavior.
+
+Restoration:
+
+The committed working version of `app/storage.py` was restored.
+
+Targeted result after restoration:
+
+`1 passed, 20 deselected`
+
+Full-suite result after restoration:
+
+`21 passed, 1 warning`
+
+Conclusion:
+
+The search regression test successfully failed when the protected behavior was broken and passed again after the implementation was restored.
