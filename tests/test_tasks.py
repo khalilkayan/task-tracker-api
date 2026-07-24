@@ -71,6 +71,124 @@ def test_patch_task_due_date_can_add_change_and_remove(client: TestClient):
     assert removed_body["title"] == "Due date task"
 
 
+def test_create_task_with_invalid_due_date_returns_422(client: TestClient):
+    r = client.post(
+        "/tasks",
+        json={"title": "Bad due date", "due_date": "not-a-date"},
+    )
+    assert r.status_code == 422
+
+
+def test_list_tasks_overdue_true_returns_only_unfinished_past_due_tasks(client: TestClient):
+    yesterday = date.today() - timedelta(days=1)
+    tomorrow = date.today() + timedelta(days=1)
+
+    unfinished_past_due = client.post(
+        "/tasks",
+        json={"title": "Past due unfinished", "due_date": yesterday.isoformat()},
+    )
+    completed_past_due = client.post(
+        "/tasks",
+        json={"title": "Past due completed", "due_date": yesterday.isoformat()},
+    )
+    future_due = client.post(
+        "/tasks",
+        json={"title": "Future due", "due_date": tomorrow.isoformat()},
+    )
+    no_due = client.post("/tasks", json={"title": "No due date"})
+
+    assert unfinished_past_due.status_code == 201
+    assert completed_past_due.status_code == 201
+    assert future_due.status_code == 201
+    assert no_due.status_code == 201
+
+    first_patch = client.patch(
+        f"/tasks/{completed_past_due.json()['id']}",
+        json={"status": "InProgress"},
+    )
+    second_patch = client.patch(
+        f"/tasks/{completed_past_due.json()['id']}",
+        json={"status": "Done"},
+    )
+    assert first_patch.status_code == 200
+    assert second_patch.status_code == 200
+
+    r = client.get("/tasks", params={"overdue": "true"})
+    assert r.status_code == 200
+    assert {task["id"] for task in r.json()} == {unfinished_past_due.json()["id"]}
+
+
+def test_list_tasks_overdue_false_behaves_like_no_filter(client: TestClient):
+    yesterday = date.today() - timedelta(days=1)
+    tomorrow = date.today() + timedelta(days=1)
+
+    past_due = client.post(
+        "/tasks",
+        json={"title": "Past due", "due_date": yesterday.isoformat()},
+    )
+    future_due = client.post(
+        "/tasks",
+        json={"title": "Future due", "due_date": tomorrow.isoformat()},
+    )
+
+    assert past_due.status_code == 201
+    assert future_due.status_code == 201
+
+    r = client.get("/tasks", params={"overdue": "false"})
+    assert r.status_code == 200
+    assert {task["id"] for task in r.json()} == {past_due.json()["id"], future_due.json()["id"]}
+
+
+def test_list_tasks_overdue_combines_with_search_status_and_priority(client: TestClient):
+    yesterday = date.today() - timedelta(days=1)
+    tomorrow = date.today() + timedelta(days=1)
+
+    target = client.post(
+        "/tasks",
+        json={"title": "Alpha report", "priority": "High", "due_date": yesterday.isoformat()},
+    )
+    in_progress_match = client.post(
+        "/tasks",
+        json={"title": "Alpha report", "priority": "High", "due_date": yesterday.isoformat()},
+    )
+    future_match = client.post(
+        "/tasks",
+        json={"title": "Alpha report", "priority": "High", "due_date": tomorrow.isoformat()},
+    )
+    non_alpha = client.post(
+        "/tasks",
+        json={"title": "Beta report", "priority": "High", "due_date": yesterday.isoformat()},
+    )
+    low_priority = client.post(
+        "/tasks",
+        json={"title": "Alpha report", "priority": "Low", "due_date": yesterday.isoformat()},
+    )
+
+    assert target.status_code == 201
+    assert in_progress_match.status_code == 201
+    assert future_match.status_code == 201
+    assert non_alpha.status_code == 201
+    assert low_priority.status_code == 201
+
+    progress_patch = client.patch(
+        f"/tasks/{in_progress_match.json()['id']}",
+        json={"status": "InProgress"},
+    )
+    assert progress_patch.status_code == 200
+
+    r = client.get(
+        "/tasks",
+        params={
+            "q": "alpha",
+            "status": "ToDo",
+            "priority": "High",
+            "overdue": "true",
+        },
+    )
+    assert r.status_code == 200
+    assert {task["id"] for task in r.json()} == {target.json()["id"]}
+
+
 def test_create_task_missing_title_returns_422(client: TestClient):
     r = client.post("/tasks", json={})
     assert r.status_code == 422

@@ -218,3 +218,26 @@ Result:
 `24 passed, 1 warning`
 
 The existing generic creation and partial-update logic successfully supported adding, changing, and removing due dates.
+
+### Overdue filtering test-first red phase
+
+Four tests were added for invalid dates and overdue filtering:
+
+- `test_create_task_with_invalid_due_date_returns_422`
+- `test_list_tasks_overdue_true_returns_only_unfinished_past_due_tasks`
+- `test_list_tasks_overdue_false_behaves_like_no_filter`
+- `test_list_tasks_overdue_combines_with_search_status_and_priority`
+
+Command:
+
+`python3 -m pytest tests/test_tasks.py -k "invalid_due_date or overdue" -q`
+
+Result:
+
+`2 failed, 2 passed, 24 deselected`
+
+The invalid-date test passed because Pydantic already validates the date field.
+
+The `overdue=false` test passed because false is defined as not applying overdue-only filtering.
+
+The two `overdue=true` tests failed because the API and storage layer did not yet implement overdue filtering. These were the expected failures before implementation.

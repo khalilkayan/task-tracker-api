@@ -368,3 +368,44 @@ Process note:
 
 Reason:
 The minimal model-only change made all create, response, update, and removal tests pass while preserving the existing architecture.
+
+### Prompt 4 — Add invalid-date and overdue-filter tests
+
+#### Prompt summary
+
+Copilot was asked to add exactly four focused backend tests:
+
+- Invalid due date returns HTTP 422
+- `overdue=true` returns only unfinished past-due tasks
+- `overdue=false` behaves like no filter
+- Overdue filtering combines with search, status, and priority
+
+The tests used relative dates based on `date.today()` and valid task-status transitions.
+
+#### AI response summary
+
+Copilot added the four requested tests to `tests/test_tasks.py`.
+
+The combined-filter test created controlled tasks so that search, status, priority, and overdue filtering were each necessary to isolate the expected result.
+
+#### Decision
+
+Accepted:
+- The invalid-date validation test
+- The unfinished past-due filtering test
+- The defined `overdue=false` behavior
+- The combined-filter test structure
+- Relative dates using `date.today()` and `timedelta`
+- Valid task-status transitions
+
+Edited:
+- Corrected spacing in the `client: TestClient` type annotation
+
+Rejected:
+- No test logic was rejected because each scenario was focused and every filter was necessary
+
+Process note:
+- Copilot applied the tests before waiting for approval, despite being asked to show the diff first
+
+Reason:
+The tests clearly define the remaining backend behavior without relying on fixed calendar dates.
