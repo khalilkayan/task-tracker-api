@@ -159,3 +159,39 @@ Targeted search tests passed:
 The complete test suite passed:
 
 `18 passed, 1 warning in 0.04s`
+
+### Prompt 4 — Add remaining backend search tests
+
+#### Prompt summary
+
+Copilot was asked to add exactly three focused tests for:
+
+- Whitespace-only search behaving like no filter
+- No-match search returning HTTP 200 with an empty list
+- Search combining with status and priority
+
+The AI was restricted to modifying only `tests/test_tasks.py`.
+
+#### AI response summary
+
+Copilot generated the three requested tests. The first two correctly covered whitespace and no-match behavior.
+
+The first version of the combined-filter test did not fully prove that the search parameter mattered because status and priority alone already isolated the expected task.
+
+#### Decision
+
+Accepted:
+- The whitespace-only search test
+- The no-match search test
+- The overall structure of the combined-filter test
+- Use of valid ToDo to InProgress transitions
+
+Edited:
+- Added another High-priority InProgress task that did not contain the search text
+- This ensured the `q` filter was necessary for the test to pass
+
+Rejected:
+- The original combined-filter setup because it could pass even if search logic were ignored
+
+Reason:
+The revised test independently proves that search, status, and priority all participate in the combined result.

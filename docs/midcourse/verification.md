@@ -81,3 +81,23 @@ Result:
 `18 passed, 1 warning in 0.04s`
 
 The original 16 tests remained passing after backend search was added.
+
+### Additional Feature 1 backend coverage
+
+Three additional tests were added:
+
+- `test_list_tasks_whitespace_search_behaves_like_no_filter`
+- `test_list_tasks_search_no_match_returns_200_and_empty_list`
+- `test_list_tasks_search_combines_with_status_and_priority`
+
+The combined-filter test includes two High-priority InProgress tasks, but only one contains the search text. This proves that the search filter is required in addition to status and priority.
+
+Targeted result:
+
+`3 passed`
+
+Full-suite result:
+
+`21 passed, 1 warning`
+
+All original tests and all new search tests passed.

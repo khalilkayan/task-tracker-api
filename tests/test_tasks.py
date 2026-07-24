@@ -78,6 +78,72 @@ def test_list_tasks_search_matches_description_case_insensitively(client: TestCl
     assert len(r.json()) == 1
     assert r.json()[0]["id"] == matching_task.json()["id"]
 
+
+def test_list_tasks_whitespace_search_behaves_like_no_filter(client: TestClient):
+    first_task = client.post("/tasks", json={"title": "First task"})
+    second_task = client.post("/tasks", json={"title": "Second task"})
+    assert first_task.status_code == 201
+    assert second_task.status_code == 201
+
+    r = client.get("/tasks", params={"q": "   "})
+    assert r.status_code == 200
+    assert {task["id"] for task in r.json()} == {
+        first_task.json()["id"],
+        second_task.json()["id"],
+    }
+
+
+def test_list_tasks_search_no_match_returns_200_and_empty_list(client: TestClient):
+    created_task = client.post("/tasks", json={"title": "Existing task"})
+    assert created_task.status_code == 201
+
+    r = client.get("/tasks", params={"q": "mismatch"})
+    assert r.status_code == 200
+    assert r.json() == []
+
+
+def test_list_tasks_search_combines_with_status_and_priority(client: TestClient):
+    matching_to_do_task = client.post(
+        "/tasks",
+        json={"title": "Alpha report", "priority": "High"},
+    )
+    matching_in_progress_task = client.post(
+        "/tasks",
+        json={"title": "Alpha report", "priority": "High"},
+    )
+    non_matching_in_progress_task = client.post(
+        "/tasks",
+        json={"title": "Beta report", "priority": "High"},
+    )
+    matching_low_priority_task = client.post(
+        "/tasks",
+        json={"title": "Alpha report", "priority": "Low"},
+    )
+    assert matching_to_do_task.status_code == 201
+    assert matching_in_progress_task.status_code == 201
+    assert non_matching_in_progress_task.status_code == 201
+    assert matching_low_priority_task.status_code == 201
+
+    patched_matching_task = client.patch(
+        f"/tasks/{matching_in_progress_task.json()['id']}",
+        json={"status": "InProgress"},
+    )
+    patched_non_matching_task = client.patch(
+        f"/tasks/{non_matching_in_progress_task.json()['id']}",
+        json={"status": "InProgress"},
+    )
+    assert patched_matching_task.status_code == 200
+    assert patched_non_matching_task.status_code == 200
+
+    r = client.get(
+        "/tasks",
+        params={"q": "alpha", "status": "InProgress", "priority": "High"},
+    )
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert r.json()[0]["id"] == matching_in_progress_task.json()["id"]
+
+
 def test_get_task_by_id_returns_task(client: TestClient, created_task):
     r = client.get(f"/tasks/{created_task['id']}")
     assert r.status_code == 200
