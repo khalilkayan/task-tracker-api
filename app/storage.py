@@ -1,10 +1,18 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from app.models import TaskCreate, TaskPriority, TaskResponse, TaskStatus, TaskUpdate
 
 
 _tasks: dict[str, TaskResponse] = {}
+
+
+def _is_task_overdue(task: TaskResponse, today: date) -> bool:
+    return (
+        task.due_date is not None
+        and task.due_date < today
+        and task.status != TaskStatus.DONE
+    )
 
 
 def add_task(payload: TaskCreate) -> TaskResponse:
@@ -16,14 +24,30 @@ def add_task(payload: TaskCreate) -> TaskResponse:
 def get_all_tasks(
     status: Optional[TaskStatus] = None,
     priority: Optional[TaskPriority] = None,
+    q: Optional[str] = None,
+    overdue: Optional[bool] = None,
 ) -> list[TaskResponse]:
     tasks = list(_tasks.values())
+
+    if q is not None:
+        query = q.strip().casefold()
+        if query:
+            tasks = [
+                task
+                for task in tasks
+                if query in task.title.casefold()
+                or query in (task.description or "").casefold()
+            ]
 
     if status is not None:
         tasks = [task for task in tasks if task.status == status]
 
     if priority is not None:
         tasks = [task for task in tasks if task.priority == priority]
+
+    if overdue is True:
+        today = date.today()
+        tasks = [task for task in tasks if _is_task_overdue(task, today)]
 
     return tasks
 
