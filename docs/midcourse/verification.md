@@ -295,3 +295,36 @@ Verified behaviors:
 Full test-suite result:
 
 `28 passed, 1 warning`
+
+
+### Break Test 2 — Completed tasks incorrectly treated as overdue
+
+To verify that the overdue test could detect a realistic defect, the condition excluding completed tasks was temporarily removed from `app/storage.py`.
+
+Temporary broken behavior:
+
+- A task with a due date before today was returned by `overdue=true` even when its status was Done
+
+Focused command:
+
+`python3 -m pytest tests/test_tasks.py::test_list_tasks_overdue_true_returns_only_unfinished_past_due_tasks -q`
+
+Broken result:
+
+`1 failed`
+
+The failure showed that an additional completed past-due task was incorrectly included in the returned ID set.
+
+The correct implementation was restored with:
+
+`git restore app/storage.py`
+
+Focused result after restoration:
+
+`1 passed`
+
+Full-suite result after restoration:
+
+`28 passed, 1 warning`
+
+This demonstrates that the test protects the rule that completed tasks must not be classified as overdue.
