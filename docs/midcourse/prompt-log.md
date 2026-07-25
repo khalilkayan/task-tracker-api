@@ -409,3 +409,47 @@ Process note:
 
 Reason:
 The tests clearly define the remaining backend behavior without relying on fixed calendar dates.
+
+
+### Prompt 5 — Implement backend overdue filtering
+
+#### Prompt summary
+
+Copilot was asked to make the smallest backend change required to pass the two failing `overdue=true` tests.
+
+The requested implementation was limited to:
+
+- Adding `overdue: Optional[bool] = None` to the existing `GET /tasks` route
+- Passing overdue into `storage.get_all_tasks`
+- Applying overdue-only filtering only when overdue is explicitly true
+- Defining overdue as a due date before today and status not Done
+- Preserving combinations with search, status, and priority
+
+#### AI response summary
+
+Copilot added the optional overdue query parameter to `app/main.py` and added overdue filtering to `app/storage.py`.
+
+Its first version compared the task status using object identity:
+
+`task.status is not TaskStatus.DONE`
+
+#### Decision
+
+Accepted:
+- Extending the existing list endpoint instead of creating a new endpoint
+- Passing the optional boolean into storage
+- Filtering only when overdue is true
+- Comparing due dates against `date.today()`
+- Combining overdue with the existing filters
+
+Edited:
+- Changed `task.status is not TaskStatus.DONE` to `task.status != TaskStatus.DONE` so the code clearly compares enum values rather than object identity
+
+Rejected:
+- No broader refactor or unrelated backend changes were accepted
+
+Process note:
+- Copilot applied the initial changes before waiting for approval, despite being asked to show the diff first
+
+Reason:
+The implementation was focused and correct after the status comparison was reviewed and improved.

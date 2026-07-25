@@ -241,3 +241,36 @@ The invalid-date test passed because Pydantic already validates the date field.
 The `overdue=false` test passed because false is defined as not applying overdue-only filtering.
 
 The two `overdue=true` tests failed because the API and storage layer did not yet implement overdue filtering. These were the expected failures before implementation.
+
+
+### Backend overdue implementation — green phase
+
+The existing `GET /tasks` endpoint was extended with an optional boolean `overdue` query parameter.
+
+When `overdue=true`, a task is returned only when:
+
+- It has a due date
+- Its due date is before the current date
+- Its status is not Done
+
+When overdue is false or omitted, no overdue-only filtering is applied.
+
+The overdue filter continues to combine with search, status, and priority.
+
+Targeted command:
+
+`python3 -m pytest tests/test_tasks.py -k "invalid_due_date or overdue" -q`
+
+Result:
+
+`4 passed, 24 deselected`
+
+Full-suite command:
+
+`python3 -m pytest tests -q`
+
+Result:
+
+`28 passed, 1 warning`
+
+All original tests, search tests, due-date tests, and overdue tests passed.

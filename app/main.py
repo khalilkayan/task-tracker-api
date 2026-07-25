@@ -53,8 +53,9 @@ def list_tasks(
     status: Optional[TaskStatus] = None,
     priority: Optional[TaskPriority] = None,
     q: Optional[str] = None,
+    overdue: Optional[bool] = None,
 ) -> list[TaskResponse]:
-    return storage.get_all_tasks(status=status, priority=priority, q=q)
+    return storage.get_all_tasks(status=status, priority=priority, q=q, overdue=overdue)
 
 
 @app.get("/tasks/{task_id}", response_model=TaskResponse, tags=["tasks"])
