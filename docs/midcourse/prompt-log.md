@@ -499,3 +499,51 @@ Rejected:
 
 Process note:
 - Copilot again applied changes before waiting for approval, despite being asked to show the proposed diff first.
+
+
+### Prompt 7 — Extract overdue rule into a helper
+
+#### Prompt summary
+
+Copilot was asked to perform one focused behavior-preserving refactor in `app/storage.py`.
+
+The inline overdue condition was to be extracted into:
+
+`_is_task_overdue(task: TaskResponse, today: date)`
+
+The existing `get_all_tasks` function would then use that helper while preserving all current behavior.
+
+#### Behavior constraints
+
+The refactor was required to preserve:
+
+- The existing `GET /tasks` API
+- Query parameter behavior
+- Response shape and ordering
+- Combined search, status, priority, and overdue filtering
+- Exclusion of tasks without due dates
+- Exclusion of tasks due today
+- Exclusion of completed tasks
+- No filtering when overdue was false or omitted
+- No mutation of stored tasks
+
+#### AI response summary
+
+Copilot extracted the overdue condition into the requested private helper and replaced the inline list-comprehension condition with a call to that helper.
+
+#### Decision
+
+Accepted:
+- The private helper
+- Passing `today` into the helper
+- Reusing the helper inside the existing overdue filtering block
+
+Rejected:
+- No broader refactor, public function rename, API change, test change, or unrelated formatting change was accepted
+
+Process note:
+- Copilot applied the refactor before waiting for approval, despite being asked to show the diff first.
+
+Verification:
+- Full suite passed after the refactor
+- Result: `28 passed, 1 warning`

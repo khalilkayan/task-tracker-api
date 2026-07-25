@@ -328,3 +328,56 @@ Full-suite result after restoration:
 `28 passed, 1 warning`
 
 This demonstrates that the test protects the rule that completed tasks must not be classified as overdue.
+
+
+### Focused refactor — behavior contract before change
+
+The overdue filtering implementation will be refactored by extracting its condition into a small private storage helper.
+
+The following observable behavior must remain unchanged:
+
+- `GET /tasks` retains the same endpoint, query parameters, status code, and response model
+- Search remains partial and case-insensitive across task title and optional description
+- Blank or whitespace-only search behaves like no search filter
+- Search, status, priority, and overdue filters combine using AND logic
+- `overdue=true` returns only tasks with a due date before today and a status other than Done
+- `overdue=false` and an omitted overdue parameter apply no overdue-only filtering
+- Tasks without due dates are not overdue
+- Tasks due today are not overdue
+- Completed tasks are not overdue
+- Returned task ordering remains unchanged
+- Listing tasks does not mutate stored task data
+
+Pre-refactor full-suite baseline:
+
+`28 passed, 1 warning`
+
+
+### Focused refactor — post-change verification
+
+The inline overdue condition in `get_all_tasks` was extracted into the private helper:
+
+`_is_task_overdue(task: TaskResponse, today: date)`
+
+The helper contains the same three conditions as the original implementation:
+
+- The task has a due date
+- The due date is before today
+- The task status is not Done
+
+The `overdue=true` block now calls the helper without changing the order or interaction of the existing filters.
+
+Post-refactor command:
+
+`python3 -m pytest tests -q`
+
+Post-refactor result:
+
+`28 passed, 1 warning`
+
+Comparison with the pre-refactor baseline:
+
+- Before: `28 passed, 1 warning`
+- After: `28 passed, 1 warning`
+
+The documented behavior contract remained satisfied.

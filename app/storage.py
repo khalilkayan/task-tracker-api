@@ -7,6 +7,14 @@ from app.models import TaskCreate, TaskPriority, TaskResponse, TaskStatus, TaskU
 _tasks: dict[str, TaskResponse] = {}
 
 
+def _is_task_overdue(task: TaskResponse, today: date) -> bool:
+    return (
+        task.due_date is not None
+        and task.due_date < today
+        and task.status != TaskStatus.DONE
+    )
+
+
 def add_task(payload: TaskCreate) -> TaskResponse:
     task = TaskResponse(**payload.model_dump())
     _tasks[task.id] = task
@@ -39,13 +47,7 @@ def get_all_tasks(
 
     if overdue is True:
         today = date.today()
-        tasks = [
-            task
-            for task in tasks
-            if task.due_date is not None
-            and task.due_date < today
-            and task.status != TaskStatus.DONE
-        ]
+        tasks = [task for task in tasks if _is_task_overdue(task, today)]
 
     return tasks
 
