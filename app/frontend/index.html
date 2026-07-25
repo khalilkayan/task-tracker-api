@@ -140,7 +140,36 @@
             letter-spacing: 0.04em;
         }
 
-        .filter-toolbar input,
+        .filter-checkbox-field {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: auto;
+            margin-bottom: 0.35rem;
+        }
+
+        .filter-checkbox-field input {
+            width: 1.125rem;
+            height: 1.125rem;
+            cursor: pointer;
+        }
+
+        .filter-checkbox-field label {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text);
+            text-transform: none;
+            letter-spacing: normal;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .filter-checkbox-field input:focus + label {
+            color: var(--accent);
+        }
+
+        .filter-toolbar input:not([type="checkbox"]),
         .filter-toolbar select {
             border: 1px solid var(--border);
             border-radius: 0.9rem;
@@ -151,7 +180,7 @@
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .filter-toolbar input:focus,
+        .filter-toolbar input:not([type="checkbox"]):focus,
         .filter-toolbar select:focus {
             outline: none;
             border-color: var(--accent);
@@ -286,6 +315,17 @@
         .pill-low {
             background: #dcfce7;
             color: #166534;
+        }
+
+        .pill-overdue {
+            background: #fecaca;
+            color: #b91c1c;
+        }
+
+        .task-due-date {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-top: 0.35rem;
         }
 
         .empty-column {
@@ -552,6 +592,10 @@
                         <option value="Low">Low</option>
                     </select>
                 </label>
+                <div class="filter-checkbox-field">
+                    <input id="overdue-filter" name="overdue" type="checkbox">
+                    <label for="overdue-filter">Overdue Only</label>
+                </div>
             </div>
             <div class="filter-actions">
                 <button type="submit" class="button primary">Search</button>
@@ -596,6 +640,10 @@
                 <label class="field">
                     <span>Assignee</span>
                     <input id="task-assignee" name="assignee" type="text">
+                </label>
+                <label class="field">
+                    <span>Due Date</span>
+                    <input id="task-due-date" name="due_date" type="date">
                 </label>
                 <div class="modal-actions">
                     <button type="button" class="button secondary" data-action="cancel">Cancel</button>
@@ -643,6 +691,28 @@
             return STATUSES.includes(task.status) ? task.status : "ToDo";
         }
 
+        function getTodayAsISOString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, "0");
+            const day = String(today.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        function isTaskOverdue(task) {
+            if (!task.due_date) {
+                return false;
+            }
+
+            const taskStatus = getTaskStatus(task);
+            if (taskStatus === "Done") {
+                return false;
+            }
+
+            const today = getTodayAsISOString();
+            return task.due_date < today;
+        }
+
         function compareTasks(a, b) {
             const priorityDelta = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
             if (priorityDelta !== 0) {
@@ -659,6 +729,7 @@
         function buildTasksUrl() {
             const searchInput = document.getElementById("task-search");
             const prioritySelect = document.getElementById("priority-filter");
+            const overdueCheckbox = document.getElementById("overdue-filter");
             const params = new URLSearchParams();
 
             const searchValue = searchInput?.value?.trim() ?? "";
@@ -669,6 +740,10 @@
             const priorityValue = prioritySelect?.value?.trim() ?? "";
             if (priorityValue) {
                 params.set("priority", priorityValue);
+            }
+
+            if (overdueCheckbox?.checked) {
+                params.set("overdue", "true");
             }
 
             const queryString = params.toString();
@@ -697,6 +772,7 @@
             const statusSelect = document.getElementById("task-status");
             const prioritySelect = document.getElementById("task-priority");
             const assigneeInput = document.getElementById("task-assignee");
+            const dueDateInput = document.getElementById("task-due-date");
             const taskIdInput = document.getElementById("task-id");
 
             if (titleInput) {
@@ -713,6 +789,9 @@
             }
             if (assigneeInput) {
                 assigneeInput.value = "";
+            }
+            if (dueDateInput) {
+                dueDateInput.value = "";
             }
             if (taskIdInput) {
                 taskIdInput.value = "";
@@ -753,6 +832,7 @@
                 const statusSelect = document.getElementById("task-status");
                 const prioritySelect = document.getElementById("task-priority");
                 const assigneeInput = document.getElementById("task-assignee");
+                const dueDateInput = document.getElementById("task-due-date");
                 const taskIdInput = document.getElementById("task-id");
 
                 if (titleInput) {
@@ -769,6 +849,9 @@
                 }
                 if (assigneeInput) {
                     assigneeInput.value = task.assignee ?? "";
+                }
+                if (dueDateInput) {
+                    dueDateInput.value = task.due_date ?? "";
                 }
                 if (taskIdInput) {
                     taskIdInput.value = String(task.id ?? "");
@@ -985,13 +1068,17 @@
         function renderTaskCard(task) {
             const priorityClass = `pill-${String(task.priority).toLowerCase()}`;
             const description = task.description ? task.description : "No description";
+            const dueDateLine = task.due_date ? `<div class="task-due-date">Due: ${escapeHtml(task.due_date)}</div>` : "";
+            const overduePill = isTaskOverdue(task) ? `<span class="pill pill-overdue">Overdue</span>` : "";
 
             return `
                 <article class="task-card" draggable="true" data-id="${escapeHtml(String(task.id))}">
                     <h2>${escapeHtml(task.title)}</h2>
                     <p>${escapeHtml(description)}</p>
+                    ${dueDateLine}
                     <div class="task-meta">
                         <span class="pill ${priorityClass}">${escapeHtml(task.priority)}</span>
+                        ${overduePill}
                         <button type="button" data-action="edit" data-id="${escapeHtml(String(task.id))}">Edit</button>
                     </div>
                 </article>
@@ -1105,6 +1192,7 @@
         function registerFilterHandlers() {
             const form = document.getElementById("task-filters-form");
             const prioritySelect = document.getElementById("priority-filter");
+            const overdueCheckbox = document.getElementById("overdue-filter");
             const clearButton = document.getElementById("clear-filters-button");
 
             if (!form || form.dataset.handlersRegistered === "true") {
@@ -1122,6 +1210,12 @@
                 });
             }
 
+            if (overdueCheckbox) {
+                overdueCheckbox.addEventListener("change", () => {
+                    void fetchTasks();
+                });
+            }
+
             if (clearButton) {
                 clearButton.addEventListener("click", () => {
                     const searchInput = document.getElementById("task-search");
@@ -1130,6 +1224,9 @@
                     }
                     if (prioritySelect) {
                         prioritySelect.value = "";
+                    }
+                    if (overdueCheckbox) {
+                        overdueCheckbox.checked = false;
                     }
                     void fetchTasks();
                 });
@@ -1172,9 +1269,10 @@
                     const statusSelect = document.getElementById("task-status");
                     const prioritySelect = document.getElementById("task-priority");
                     const assigneeInput = document.getElementById("task-assignee");
+                    const dueDateInput = document.getElementById("task-due-date");
                     const taskIdInput = document.getElementById("task-id");
 
-                    if (!titleInput || !descriptionInput || !statusSelect || !prioritySelect || !assigneeInput || !taskIdInput) {
+                    if (!titleInput || !descriptionInput || !statusSelect || !prioritySelect || !assigneeInput || !dueDateInput || !taskIdInput) {
                         return;
                     }
 
@@ -1191,6 +1289,7 @@
                     const nextStatus = statusSelect.value;
                     const nextPriority = prioritySelect.value;
                     const nextAssignee = assigneeInput.value.trim();
+                    const nextDueDate = dueDateInput.value.trim();
                     const nextTaskId = taskIdInput.value;
 
                     if (modalMode === "edit") {
@@ -1226,6 +1325,11 @@
                         const normalizedAssignee = nextAssignee ? nextAssignee : null;
                         if (normalizedAssignee !== currentAssignee) {
                             payload.assignee = normalizedAssignee;
+                        }
+
+                        const currentDueDate = task.due_date ?? "";
+                        if (nextDueDate !== currentDueDate) {
+                            payload.due_date = nextDueDate || null;
                         }
 
                         if (Object.keys(payload).length === 0) {
@@ -1269,6 +1373,7 @@
                                 status: nextStatus,
                                 priority: nextPriority,
                                 assignee: nextAssignee ? nextAssignee : null,
+                                due_date: nextDueDate ? nextDueDate : null,
                             }),
                         });
 

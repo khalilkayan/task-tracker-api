@@ -453,3 +453,49 @@ Process note:
 
 Reason:
 The implementation was focused and correct after the status comparison was reviewed and improved.
+
+
+### Prompt 6 — Implement due-date frontend support
+
+#### Prompt summary
+
+Copilot was asked to modify only `app/frontend/index.html` to add:
+
+- An optional due-date field to the create/edit modal
+- Due-date text on task cards
+- An Overdue pill for unfinished past-due tasks
+- An Overdue Only checkbox connected to the backend query parameter
+- Preservation of existing search, priority, drag-and-drop, modal, and refresh behavior
+
+#### AI response summary
+
+Copilot added the requested HTML, CSS, and JavaScript behavior. It used a locally generated `YYYY-MM-DD` string for overdue display checks and kept filtering backend-driven.
+
+#### Review findings and edits
+
+Two issues were found during review:
+
+1. The broad `.filter-toolbar input` CSS selector also styled the checkbox like a text input. It was corrected to use `input:not([type="checkbox"])`.
+
+2. The initial PATCH comparison normalized an empty form date to `null` before comparing it with an empty stored value. This caused an unchanged empty due date to be treated as changed. The comparison was corrected to compare the two form-compatible strings first, then send `null` only when an existing date is deliberately cleared.
+
+#### Decision
+
+Accepted:
+- Due-date modal input
+- Due-date card display
+- Local ISO date helper
+- Overdue display helper
+- Backend-driven overdue query parameter
+- Filter checkbox and Clear Filters behavior
+- Conditional PATCH due-date updates
+
+Edited:
+- Checkbox CSS selector
+- Empty due-date PATCH comparison
+
+Rejected:
+- No unrelated refactor or backend modification was accepted
+
+Process note:
+- Copilot again applied changes before waiting for approval, despite being asked to show the proposed diff first.

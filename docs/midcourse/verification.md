@@ -274,3 +274,24 @@ Result:
 `28 passed, 1 warning`
 
 All original tests, search tests, due-date tests, and overdue tests passed.
+
+
+### Due-date frontend manual verification
+
+The frontend was tested manually in the browser.
+
+Verified behaviors:
+
+- Creating a past-due unfinished task displayed its due date and an Overdue pill
+- Creating a future-due task displayed its due date without an Overdue pill
+- Creating a task without a due date displayed no due-date line or Overdue pill
+- Enabling Overdue Only returned only unfinished past-due tasks
+- Editing an overdue task to a future date while the filter was active caused it to disappear while preserving the active filter
+- Clear Filters restored all tasks and removed the overdue filter
+- Clearing an existing due date removed the due-date line and left the edit field empty
+- Search, priority, and overdue filters combined correctly
+- All backend tests continued to pass
+
+Full test-suite result:
+
+`28 passed, 1 warning`
