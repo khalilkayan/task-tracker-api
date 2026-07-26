@@ -211,7 +211,7 @@ def test_create_task_invalid_status_returns_422(client: TestClient):
 
 def test_list_tasks_empty_returns_200_and_empty_list(client: TestClient):
     r = client.get("/tasks")
-    assert r.status_code == 201
+    assert r.status_code == 200
     assert r.json() == []
 
 def test_list_tasks_filter_by_status_no_match_returns_200_and_empty_list(client: TestClient, created_task):
