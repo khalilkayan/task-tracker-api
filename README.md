@@ -195,3 +195,6 @@ Planning, architecture decisions, prompt records, verification evidence,
 and reflection material for the mid-course project are in
 `docs/midcourse/`. Evidence for the Module 4 work (Claude Code usage, CI,
 and Docker) is in `docs/module4/`.
+
+- [Technical decision: multi-stage non-root container](docs/decisions/multi-stage-non-root-container.md)
+- [Module 4 tool reflection](docs/module4/part-4-6-tool-reflection.md)
