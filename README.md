@@ -91,7 +91,7 @@ Latest verified result: 28 passed.
 Run the standalone validation script separately:
 
 ```bash
-python tests/verify_a.py
+PYTHONPATH=. python tests/verify_a.py
 ```
 
 ## Documentation
