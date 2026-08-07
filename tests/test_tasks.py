@@ -338,6 +338,17 @@ def test_patch_title_only_returns_200_and_updates_title(client: TestClient, crea
     assert r.json()["title"] == "Updated title"
     assert r.json()["status"] == "ToDo"
 
+def test_patch_null_title_returns_422_and_preserves_title(client: TestClient, created_task):
+    r = client.patch(
+        f"/tasks/{created_task['id']}",
+        json={"title": None},
+    )
+    assert r.status_code == 422
+
+    get_response = client.get(f"/tasks/{created_task['id']}")
+    assert get_response.status_code == 200
+    assert get_response.json()["title"] == created_task["title"]
+
 def test_patch_valid_transition_todo_to_inprogress_returns_200(client: TestClient, created_task):
     r = client.patch(
         f"/tasks/{created_task['id']}",
