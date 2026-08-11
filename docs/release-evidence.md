@@ -13,7 +13,7 @@
 ## CI Evidence
 
 - Workflow file: `.github/workflows/ci.yml`
-- Latest run link or note: TODO — confirm final `final-project` GitHub Actions run after the final evidence commit.
+- Latest run link or note: Successful `final-project` CI run for commit `bd7b799` (`Add final project release and AI review evidence`): https://github.com/khalilkayan/task-tracker-api/actions/runs/31529298163
 - Test command used by CI: `python -m pytest -v --tb=short`
 - Python version: `3.11`
 - Dependencies: installed with `python -m pip install -r requirements.txt`
