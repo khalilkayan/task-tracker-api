@@ -107,7 +107,7 @@ route definitions in `app/main.py`, at:
 python -m pytest -v --tb=short
 ```
 
-As of the last verified local run, all 28 tests passed. Test count and
+As of the final-project baseline verification, all 29 tests passed. Test count and
 results can change as the suite evolves — rerun the command above for the
 current result; the authoritative status for any given commit is the
 GitHub Actions run defined at `.github/workflows/ci.yml`.
@@ -198,3 +198,24 @@ and Docker) is in `docs/module4/`.
 
 - [Technical decision: multi-stage non-root container](docs/decisions/multi-stage-non-root-container.md)
 - [Module 4 tool reflection](docs/module4/part-4-6-tool-reflection.md)
+
+## Final Project
+
+Branch reviewed: `final-project`
+
+### What this submission demonstrates
+
+- The existing Task Tracker app still runs inside the intended course scope.
+- CI runs the pytest suite on push and pull request.
+- The Docker image builds and runs with `/health` returning HTTP 200.
+- AI review, security, and ownership evidence is recorded in `docs/`.
+
+### How to run locally
+
+Backend:
+
+```bash
+python3.11 -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
