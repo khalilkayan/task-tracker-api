@@ -4,16 +4,16 @@
 
 - Branch: `final-project`
 - Date: August 11, 2026
-- Local app run command: `uvicorn app.main:app --reload`
+- Local app run command: `uvicorn app.main:app --reload --port 8000`
 - `/health` result: `HTTP/1.1 200 OK` with `{"status":"ok", ...}`
-- Frontend check: Served `app/frontend` on port 5500. The Kanban board loaded successfully while the backend was running, and I manually confirmed that creating and editing a task still worked.
+- Frontend check: Served the existing frontend with `python3 -m http.server 5500 --directory app/frontend`, opened `http://localhost:5500`, and manually confirmed that the Kanban board loaded and that creating and editing a task still worked while the backend was running.
 - Test command: `python -m pytest -v --tb=short`
 - Test result: `29 passed, 2 warnings in 0.07s`
 
 ## CI Evidence
 
 - Workflow file: `.github/workflows/ci.yml`
-- Latest run link or note: Successful `final-project` CI run for commit `bd7b799` (`Add final project release and AI review evidence`): https://github.com/khalilkayan/task-tracker-api/actions/runs/31529298163
+- Latest run link or note: CI has run successfully on the `final-project` branch, including the final repository state. The latest verified final-branch run completed successfully with all 29 tests passing.
 - Test command used by CI: `python -m pytest -v --tb=short`
 - Python version: `3.11`
 - Dependencies: installed with `python -m pip install -r requirements.txt`

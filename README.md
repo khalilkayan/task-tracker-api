@@ -219,3 +219,56 @@ python3.11 -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
+```
+
+Frontend, in a second terminal:
+
+```bash
+python3 -m http.server 5500 --directory app/frontend
+```
+
+Open `http://localhost:5500` while the backend is running on port 8000.
+
+Repository layout note: this existing course repository stores the frontend at `app/frontend/index.html` rather than in a separate root-level `frontend/` directory.
+
+### How to run tests
+
+```bash
+python -m pytest -v --tb=short
+```
+
+### How to run with Docker
+
+Build the image:
+
+```bash
+docker build -t task-tracker-api .
+```
+
+Run the container:
+
+```bash
+docker run --rm -d --name task-tracker-final -p 8000:8000 task-tracker-api
+```
+
+Verify the health endpoint:
+
+```bash
+curl -i http://127.0.0.1:8000/health
+```
+
+Stop the container:
+
+```bash
+docker stop task-tracker-final
+```
+
+### Evidence files
+
+- `docs/release-evidence.md`
+- `docs/final-ai-review.md`
+- `docs/ai-playbook.md`
+
+### AI assistance summary
+
+AI helped with planning, documentation review, code review, security review, CI/Docker analysis, and debugging during the course. I verified the final work by reviewing repository files and diffs, running the full pytest suite, checking the application locally, verifying `/health`, and building and running the Docker container. I also manually checked the container user and searched the running container for baked environment files. One AI claim I rejected was that the frontend was absent from the Docker image; checking the `Dockerfile` showed that `COPY app/ ./app/` includes `app/frontend/`, although the container runtime command serves only the FastAPI backend.

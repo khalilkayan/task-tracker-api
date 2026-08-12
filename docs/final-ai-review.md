@@ -8,6 +8,8 @@
 
 ## AI code review mini-log
 
+Reviewed diff: commit `cf47ba5` (`Reject null task titles on update`), covering `app/models.py` and `tests/test_tasks.py`.
+
 | AI comment | Grade: Useful / Noise / Wrong | Reason | Verification or decision |
 |---|---|---|---|
 | The `TaskUpdate` title validator correctly separates an omitted PATCH title from an explicit `null`. | Useful | This matches the intended PATCH behavior: omission remains valid while an explicit `null` is rejected. | Verified against `app/models.py` and the existing status-only PATCH coverage. No change needed. |
