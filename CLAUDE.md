@@ -39,7 +39,7 @@ Open http://localhost:5500 while the backend runs on port 8000.
 Tests:
 
 ```bash
-pytest -v
+python -m pytest -v --tb=short
 ```
 
 Standalone validation script (not collected by pytest — filename doesn't match `test_*.py`; run directly):
@@ -60,7 +60,7 @@ FastAPI backend + vanilla JS frontend, with **in-memory** storage (no database).
 - `app/business_rules.py` — status-transition validation only; `VALID_TRANSITIONS` is the single source of truth.
 - `app/frontend/index.html` — self-contained Kanban board (inline CSS/JS, no framework). Talks to the API via `fetch` against `API_BASE = "http://localhost:8000"`. It reimplements the overdue check client-side (`isTaskOverdue()`) independently of `storage._is_task_overdue` — keep both in sync if the rule changes.
 - `tests/conftest.py` — `client` fixture (`TestClient(app)`), `created_task` fixture, and an autouse `_reset_storage` fixture that calls `storage._reset()` before and after every test so no task state leaks between tests.
-- `tests/test_tasks.py` — the pytest suite (28 tests as of the last verified run).
+- `tests/test_tasks.py` — the pytest suite (29 tests as of the last verified run).
 - `tests/verify_a.py` — a standalone script exercising `app.models`/`app.storage` directly; not picked up by `pytest` (filename doesn't match `test_*.py`).
 
 ## 4. Business rules

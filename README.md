@@ -1,74 +1,72 @@
 # Task Tracker API
 
-A small full-stack task-management project built with FastAPI, in-memory Python storage, pytest, and a vanilla HTML, CSS, and JavaScript Kanban board.
+[![CI](https://github.com/khalilkayan/task-tracker-api/actions/workflows/ci.yml/badge.svg)](https://github.com/khalilkayan/task-tracker-api/actions/workflows/ci.yml)
 
-This mid-course extension adds two end-to-end features:
+A full-stack task-management application with a FastAPI/Pydantic REST API and a responsive vanilla JavaScript Kanban board.
 
-1. Search and combined task filters
-2. Due dates and overdue filtering
+## Overview
+
+The backend exposes a focused, well-validated REST API for tasks: creation, retrieval,
+partial updates, deletion, and combined query filtering. The frontend is a
+self-contained Kanban board that consumes that API directly in the browser, with no
+build step and no framework.
+
+Developed and verified as the final project for the American University of Beirut (AUB)
+AI-Assisted Coding Professional Certificate.
 
 ## Features
 
-- Create, read, update, and delete tasks
-- ToDo, InProgress, and Done Kanban columns
-- Validated task-status transitions
-- Search by task title or description
-- Filter by priority
-- Combine search, priority, and overdue filters
-- Add, change, or remove optional due dates
-- Display due dates and Overdue indicators on task cards
-- Filter for unfinished overdue tasks
-- Responsive vanilla JavaScript frontend
-- Automated API tests with pytest
+- Task creation, retrieval, partial updates, and deletion
+- `ToDo`, `InProgress`, and `Done` Kanban columns
+- Drag-and-drop status changes
+- Validated workflow transitions: `ToDo` → `InProgress` → `Done`, with `Done` → `InProgress` for reopening
+- Low, Medium, and High priorities
+- Optional descriptions, assignees, and due dates
+- Search across task titles and descriptions
+- Status, priority, and overdue filters
+- Search and filters combine with AND semantics
+- Overdue indicators for unfinished tasks past their due date
+- Responsive vanilla JavaScript interface
 
 ## Technology
 
-- Python
+- Python 3.11
 - FastAPI
-- Pydantic
+- Pydantic v2
+- Uvicorn
 - pytest
-- HTML
-- CSS
-- JavaScript
+- HTML, CSS, and vanilla JavaScript
+- Docker
+- GitHub Actions
 
-## Project structure
+## Architecture
 
-```text
-.github/
-└── workflows/
-    └── ci.yml
+- FastAPI backend
+- Pydantic v2 request and response models
+- Business rules separated into `app/business_rules.py`
+- In-memory dictionary storage in `app/storage.py`
+- State resets whenever the backend process restarts
+- Self-contained frontend in `app/frontend/index.html`
+- Frontend calls `http://localhost:8000`
+- No database and no authentication
 
-app/
-├── frontend/
-│   └── index.html
-├── business_rules.py
-├── main.py
-├── models.py
-└── storage.py
+## API Routes
 
-docs/
-├── midcourse/
-│   ├── mini-adr.md
-│   ├── prompt-log.md
-│   ├── reflection.md
-│   ├── user-stories.md
-│   └── verification.md
-└── module4/
-    ├── part-4-1-claude-code-evidence.md
-    ├── part-4-2-ci-evidence.md
-    └── part-4-3-docker-evidence.md
+| Method | Path               | Description                       |
+| ------ | ------------------ | --------------------------------- |
+| GET    | `/health`          | Service health                    |
+| POST   | `/tasks`           | Create a task (HTTP 201)          |
+| GET    | `/tasks`           | List and filter tasks             |
+| GET    | `/tasks/{task_id}` | Retrieve one task                 |
+| PATCH  | `/tasks/{task_id}` | Partial update                    |
+| DELETE | `/tasks/{task_id}` | Delete a task (HTTP 204, no body) |
 
-tests/
-├── conftest.py
-├── test_tasks.py
-└── verify_a.py
+`GET /tasks` accepts optional `q`, `status`, `priority`, and `overdue` query
+parameters, which apply together.
 
-.dockerignore
-CLAUDE.md
-Dockerfile
-```
+## Running Locally
 
-## Local setup
+Set up the environment:
 
 ```bash
 python3.11 -m venv venv
@@ -76,199 +74,76 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-## Run the backend locally
+Start the backend:
 
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
 
-## Run the frontend
-
-In a second terminal:
+Serve the frontend in another terminal:
 
 ```bash
 python3 -m http.server 5500 --directory app/frontend
 ```
 
-Open http://localhost:5500 while the backend is running on port 8000.
+Then open http://localhost:5500 while the backend is running on port 8000.
 
-## API documentation
+Interactive API documentation is generated from the route definitions and served at:
 
-While the backend is running (locally or in the Docker container), FastAPI
-serves interactive API documentation, generated automatically from the
-route definitions in `app/main.py`, at:
+- http://localhost:8000/docs
+- http://localhost:8000/redoc
 
-- `http://localhost:8000/docs` — Swagger UI
-- `http://localhost:8000/redoc` — ReDoc
-
-## Run the tests
+## Testing and CI
 
 ```bash
 python -m pytest -v --tb=short
 ```
 
-As of the final-project baseline verification, all 29 tests passed. Test count and
-results can change as the suite evolves — rerun the command above for the
-current result; the authoritative status for any given commit is the
-GitHub Actions run defined at `.github/workflows/ci.yml`.
+The latest verified local run passed all 29 tests.
 
-Run the standalone validation script separately:
+GitHub Actions (`.github/workflows/ci.yml`) runs the same command on Python 3.11 for
+every branch push and for pull requests targeting `main`. A failing test fails the
+workflow.
 
-```bash
-PYTHONPATH=. python tests/verify_a.py
-```
+## Docker
 
-## Run with Docker
-
-The `Dockerfile` at the repository root builds a container image for the
-backend using a multi-stage build: a `builder` stage installs dependencies
-into a virtual environment, and a separate `runtime` stage copies only
-that virtual environment and the `app/` directory (including
-`app/frontend/`), running the application as a non-root `app` user. The
-image also defines a Docker `HEALTHCHECK` that polls `/health` from
-inside the container.
-
-The container's `CMD` starts only the FastAPI backend
-(`uvicorn app.main:app`); it does not serve `app/frontend/index.html`
-over HTTP, even though that file is present inside the image. To use the
-browser frontend, continue to serve it separately with the command
-documented under "Run the frontend" above.
-
-Build the image:
-
-```bash
-docker build -t task-tracker-api:module4 .
-```
-
-Run it, mapping container port 8000 to the host:
-
-```bash
-docker run -d --name task-tracker-api -p 8000:8000 task-tracker-api:module4
-```
-
-Check that it's healthy:
-
-```bash
-curl http://localhost:8000/health
-```
-
-Stop and remove the container:
-
-```bash
-docker stop task-tracker-api
-docker rm task-tracker-api
-```
-
-## Continuous integration
-
-GitHub Actions is configured at `.github/workflows/ci.yml`. The `test` job
-runs on `ubuntu-latest` with Python 3.11, and triggers:
-
-- on every push, to any branch
-- on pull requests targeting `main`
-
-It installs dependencies from `requirements.txt` and runs the test suite
-with:
-
-```bash
-python -m pytest -v --tb=short
-```
-
-A failing test fails the workflow.
-
-## Documentation conventions
-
-- Public functions and methods (names that do not start with an underscore)
-  use Google-style docstrings — a summary, `Args`, `Returns`, and, where
-  applicable, `Raises`. Route handlers in `app/main.py` also include a concise
-  `Example`.
-- Private, underscore-prefixed helpers (for example
-  `storage._is_task_overdue` and `storage._reset`) are internal implementation
-  details and are intentionally not required to have docstrings.
-- Docstring `Example` and `Raises` content must match the actual
-  implementation — no invented fields, routes, query parameters, statuses, or
-  behavior.
-
-## Documentation
-
-Planning, architecture decisions, prompt records, verification evidence,
-and reflection material for the mid-course project are in
-`docs/midcourse/`. Evidence for the Module 4 work (Claude Code usage, CI,
-and Docker) is in `docs/module4/`.
-
-- [Technical decision: multi-stage non-root container](docs/decisions/multi-stage-non-root-container.md)
-- [Module 4 tool reflection](docs/module4/part-4-6-tool-reflection.md)
-
-## Final Project
-
-Branch reviewed: `final-project`
-
-### What this submission demonstrates
-
-- The existing Task Tracker app still runs inside the intended course scope.
-- CI runs the pytest suite on push and pull request.
-- The Docker image builds and runs with `/health` returning HTTP 200.
-- AI review, security, and ownership evidence is recorded in `docs/`.
-
-### How to run locally
-
-Backend:
-
-```bash
-python3.11 -m venv venv
-source venv/bin/activate
-python -m pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-
-Frontend, in a second terminal:
-
-```bash
-python3 -m http.server 5500 --directory app/frontend
-```
-
-Open `http://localhost:5500` while the backend is running on port 8000.
-
-Repository layout note: this existing course repository stores the frontend at `app/frontend/index.html` rather than in a separate root-level `frontend/` directory.
-
-### How to run tests
-
-```bash
-python -m pytest -v --tb=short
-```
-
-### How to run with Docker
-
-Build the image:
+The `Dockerfile` uses a multi-stage Python 3.11-slim build: a builder stage installs
+dependencies into a virtual environment, and a separate runtime stage copies only that
+environment and the application code. The container runs as a non-root `app` user and
+defines a health check against `/health`. It serves the FastAPI backend only — not the
+browser frontend, which is served separately as shown above.
 
 ```bash
 docker build -t task-tracker-api .
+docker run --rm -d --name task-tracker-api -p 8000:8000 task-tracker-api
+curl http://127.0.0.1:8000/health
+docker stop task-tracker-api
 ```
 
-Run the container:
+## AI-Assisted Development
 
-```bash
-docker run --rm -d --name task-tracker-final -p 8000:8000 task-tracker-api
-```
+This project was built with AI assistance under direct human ownership.
 
-Verify the health endpoint:
+Kayan defined the requirements, feature decisions, and acceptance criteria. Claude Code
+in VS Code supported iterative implementation, testing, documentation, debugging, code
+review, and security analysis. The final work remained human-reviewed: Kayan
+inspected the diffs, ran the full test suite, exercised the application manually, and
+verified the Docker build and the `/health` endpoint.
 
-```bash
-curl -i http://127.0.0.1:8000/health
-```
+## Documentation
 
-Stop the container:
+- [Architecture](docs/architecture.md) — system design and component boundaries
+- [Security review](docs/security-review.md) — threat surface and findings
+- [Release evidence](docs/release-evidence.md) — verification record for the release
+- [Final AI review](docs/final-ai-review.md) — AI review pass and accepted/rejected findings
+- [AI usage](docs/ai-usage.md) — how AI assistance was applied
+- [Mid-course docs](docs/midcourse/) — ADR, user stories, prompt log, verification
+- [Module 4 evidence](docs/module4/) — Claude Code, CI, and Docker evidence
 
-```bash
-docker stop task-tracker-final
-```
+## Current Limitations
 
-### Evidence files
-
-- `docs/release-evidence.md`
-- `docs/final-ai-review.md`
-- `docs/ai-playbook.md`
-
-### AI assistance summary
-
-AI helped with planning, documentation review, code review, security review, CI/Docker analysis, and debugging during the course. I verified the final work by reviewing repository files and diffs, running the full pytest suite, checking the application locally, verifying `/health`, and building and running the Docker container. I also manually checked the container user and searched the running container for baked environment files. One AI claim I rejected was that the frontend was absent from the Docker image; checking the `Dockerfile` showed that `COPY app/ ./app/` includes `app/frontend/`, although the container runtime command serves only the FastAPI backend.
+- In-memory storage resets on restart
+- No authentication or multi-user isolation
+- The frontend API URL is configured for local development
+- The Docker image serves only the backend
+- This is a learning and portfolio project, not presented as a deployed production service
